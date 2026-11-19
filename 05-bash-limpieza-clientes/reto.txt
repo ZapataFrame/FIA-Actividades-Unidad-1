@@ -1,0 +1,1 @@
+usando unicamente comandos de bash sobre dataset limpio final obtegan la lista unica de departamentos ordenados alfabeticamente, encuentra personas pertenecen al departamento de ventas.

@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Taller CrewAI · Tu primer equipo de agentes de IA</title>
+<meta name="description" content="Guía paso a paso: construye tu primer equipo de agentes de IA con CrewAI, Ollama y Serper.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23192535'/%3E%3Cpath d='M8 10h16M8 10l8 14 8-14' fill='none' stroke='%23ed8758' stroke-width='2'/%3E%3Ccircle cx='8' cy='10' r='3' fill='%23f4f6f8'/%3E%3Ccircle cx='24' cy='10' r='3' fill='%23f4f6f8'/%3E%3Ccircle cx='16' cy='24' r='3' fill='%23ed8758'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@100..900&display=swap" rel="stylesheet">
+<style>
+/* === Taller CrewAI — Estilos === */
+:root{--paper:#f3f5f7;--ink:#192535;--muted:#596777;--line:#cbd2da;--accent:#b74c27;--peach:#f3c2a8;--white:#fff;--green:#2d8a56;--font:Archivo,Arial,Helvetica,sans-serif;--ease:cubic-bezier(.16,1,.3,1)}
+
+/* Reset */
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);height:100dvh;overflow:hidden}::selection{background:var(--peach);color:var(--ink)}a{color:inherit;text-underline-offset:4px}button{font:inherit;color:inherit;cursor:pointer}button:disabled{opacity:.3;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:5px}svg{display:block}button svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round}button{touch-action:manipulation}*{scrollbar-width:thin;scrollbar-color:var(--muted) var(--paper)}[hidden]{display:none!important}
+
+/* Topbar */
+.topbar{height:84px;margin:0 4.7%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);gap:20px}
+.brand{display:flex;align-items:center;gap:13px;text-decoration:none;white-space:nowrap}
+.brand svg{width:30px;height:30px;fill:var(--paper);stroke:var(--ink);stroke-width:1.8}
+.brand b{font-size:23px;letter-spacing:-.04em}
+.brand-divider{height:20px;border-left:1px solid var(--line);margin:0 8px}
+.course,.header-right{font-size:13px}
+.course{color:var(--muted)}
+.header-right{display:flex;align-items:center;gap:28px}
+.header-right>span{color:var(--muted)}
+.quiet{border:0;background:transparent;display:flex;gap:9px;align-items:center;padding:12px 4px}
+.quiet:hover{color:var(--accent)}
+
+/* Stage */
+#stage{height:calc(100dvh - 164px);padding:0 6.5%;overflow:auto;overscroll-behavior:contain}
+.slide{min-height:100%;max-width:1500px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;padding:32px 0 28px;gap:22px;animation:arrive .3s var(--ease)}
+.slide h1,.slide h2,.slide h3,.slide h4,.slide p{margin:0}
+.slide h1{font-size:clamp(58px,7vw,100px);font-weight:650;letter-spacing:-.04em;line-height:.95}
+.slide h2{font-size:clamp(28px,3.5vw,50px);line-height:1.1;letter-spacing:-.03em;font-weight:600;text-wrap:balance;max-width:1100px}
+.slide h3{font-size:clamp(19px,1.6vw,26px);line-height:1.2;letter-spacing:-.02em;font-weight:580}
+.slide h4{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.lead{font-size:clamp(17px,1.6vw,24px);line-height:1.45;max-width:55ch;color:var(--muted)}
+.accent{color:var(--accent)}
+
+/* Hero */
+.hero{display:flex;flex-direction:column;align-items:flex-start;gap:22px}
+.hero h1{margin-bottom:4px}
+.hero-sub{font-size:clamp(22px,2.6vw,38px);font-weight:450;letter-spacing:-.03em;line-height:1.15;max-width:22ch}
+.hero-meta{font-size:13px;color:var(--muted)}
+.start-btn{border:0;border-radius:5px;padding:14px 24px;background:var(--ink);color:white;display:inline-flex;align-items:center;gap:16px;font-size:15px;font-weight:550}
+.start-btn:hover{background:var(--accent)}
+.start-btn svg{width:21px;height:21px;stroke:white;stroke-width:1.6;fill:none}
+
+/* Code blocks + Copy */
+pre{margin:0;background:var(--ink);color:#e3edf4;padding:18px 22px;overflow-x:auto;border-radius:5px;font-size:14.5px;line-height:1.6;tab-size:4;white-space:pre}
+pre code{font-size:1em;font-family:'Cascadia Code',Consolas,'Courier New',monospace;color:inherit}
+code{font-family:'Cascadia Code',Consolas,'Courier New',monospace;font-size:.87em}
+.code-block{position:relative;margin:6px 0}
+.copy-btn{position:absolute;top:7px;right:7px;width:32px;height:32px;border:0;border-radius:5px;background:rgba(255,255,255,.08);display:grid;place-items:center;z-index:2;transition:background .2s}
+.copy-btn:hover{background:rgba(255,255,255,.2)}
+.copy-btn svg{width:16px;height:16px;stroke:#9ab;stroke-width:2;fill:none}
+.copy-btn.copied{background:var(--green)}
+.copy-btn.copied svg{stroke:#fff}
+.code-label{font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+
+/* Accordion (details/summary) */
+.accordion{border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:8px 0}
+.accordion details{border:0;border-top:1px solid var(--line);margin:0;border-radius:0}
+.accordion details:first-child{border-top:0}
+.accordion summary{padding:13px 18px;cursor:pointer;font-weight:550;font-size:16px;list-style:none;display:flex;align-items:center;gap:10px;user-select:none;transition:background .15s}
+.accordion summary:hover{background:rgba(0,0,0,.03)}
+.accordion summary::before{content:"▸";font-size:13px;transition:transform .2s;color:var(--accent);font-family:monospace}
+.accordion details[open] summary::before{transform:rotate(90deg)}
+.accordion summary::-webkit-details-marker{display:none}
+.accordion .detail-body{padding:4px 18px 16px}
+.accordion .detail-body p{margin:6px 0;font-size:15px;line-height:1.5}
+
+/* Tabs */
+.tab-group{border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:10px 0}
+.tab-bar{display:flex;border-bottom:2px solid var(--line);background:#eaecef}
+.tab-btn{flex:1;border:0;background:transparent;padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn:hover{background:rgba(0,0,0,.03)}
+.tab-btn.active{background:var(--white);border-bottom-color:var(--accent);color:var(--accent)}
+.tab-panel{display:none;padding:18px 22px}
+.tab-panel.active{display:block}
+.tab-panel p{margin:6px 0;font-size:15px;line-height:1.5}
+
+/* Checklist */
+.checklist{list-style:none;padding:0;display:grid;gap:8px;margin:0}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border:1px solid var(--line);border-radius:5px;font-size:16px;line-height:1.4;background:var(--white)}
+.check-icon{width:20px;height:20px;border:2px solid var(--line);border-radius:4px;flex-shrink:0;margin-top:2px}
+
+/* Directory tree */
+.dir-tree{background:var(--ink);color:#e3edf4;padding:18px 22px;border-radius:5px;font-family:'Cascadia Code',Consolas,'Courier New',monospace;font-size:13.5px;line-height:1.85;overflow-x:auto;white-space:pre;margin:6px 0}
+.dir-tree .hl{color:var(--peach)}
+
+/* Note, Tip, Warning */
+.note-box,.tip-box,.warn-box{padding:14px 18px;border-radius:5px;font-size:14.5px;line-height:1.55;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
+.note-box{background:#e8ecf0;border-left:4px solid var(--muted)}
+.tip-box{background:#eaf5ee;border-left:4px solid var(--green)}
+.warn-box{background:#fef6ee;border-left:4px solid #d48806}
+.note-box .n-icon,.tip-box .n-icon,.warn-box .n-icon{font-size:18px;flex-shrink:0;line-height:1}
+
+/* External links */
+.ext{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.ext:hover{color:var(--ink)}
+
+/* Layouts */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+
+/* Slide end */
+.slide-end{margin-top:auto;padding-top:8px}
+.takeaway{font-size:14.5px;font-weight:550;line-height:1.5;max-width:60ch}
+.takeaway::before{content:"";display:inline-block;width:18px;height:2px;background:var(--accent);vertical-align:middle;margin-right:10px}
+
+/* 5 Pillars */
+.parts{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:6px 0}
+.parts>div{padding:16px 14px;border-right:1px solid var(--line)}
+.parts>div:last-child{border-right:0}
+.part-label{display:block;font-size:15px;color:var(--accent);font-weight:600;margin:10px 0 6px}
+.parts p{font-size:14px;color:var(--muted);line-height:1.4;margin:0}
+.parts .crew-part{background:var(--ink);color:white;padding-left:16px;padding-right:16px}
+.crew-part .part-label{color:var(--peach)}
+.crew-part p{color:#c5cfda}
+
+/* Tables */
+.slide table{border-collapse:collapse;width:100%}
+.slide td,.slide th{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);font-size:15px}
+
+/* Toolbar */
+.toolbar{height:80px;display:flex;align-items:center;justify-content:space-between;margin:0 4.7%;border-top:1px solid var(--line);gap:20px}
+.progress-group,.tools{display:flex;align-items:center;gap:14px}
+#counter{font-size:14px;font-variant-numeric:tabular-nums;min-width:57px;font-weight:600}
+.progress-track{height:2px;width:110px;background:var(--line)}
+#progress{height:100%;display:block;background:var(--accent);transition:width .3s}
+.key-hint{color:var(--muted);font-size:12px;margin-left:15px}
+.icon-button{width:42px;height:42px;border:0;border-radius:50%;background:transparent;display:grid;place-items:center}
+.icon-button:hover:not(:disabled){background:#e2e7ed}
+.icon-button.next{background:var(--ink);color:#fff}
+.icon-button.next:hover:not(:disabled){background:var(--accent)}
+.control-divider{height:24px;border-left:1px solid var(--line);margin:0 6px}
+
+/* Index */
+#slide-index{position:absolute;z-index:5;top:84px;bottom:80px;right:0;left:0;background:var(--paper);padding:30px 6.5%;overflow:auto}
+.index-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.index-heading h2{font-size:36px;letter-spacing:-.03em;margin:0}
+#index-items{display:grid;grid-template-columns:repeat(3,1fr);column-gap:34px}
+.index-item{background:transparent;border:0;border-top:1px solid var(--line);text-align:left;padding:20px 2px;display:flex;gap:18px;line-height:1.3;font-size:14px}
+.index-item span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.index-item:hover,.index-item[aria-current]{color:var(--accent)}
+.index-item[aria-current]{font-weight:650}
+
+/* Accessibility & Toast */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#toast{position:fixed;bottom:95px;left:50%;transform:translateX(-50%);padding:15px 22px;background:var(--ink);color:white;border-radius:6px;z-index:10;font-size:14px;max-width:85vw}
+
+/* Animation */
+@keyframes arrive{from{transform:translateY(8px);opacity:.7}to{transform:translateY(0);opacity:1}}
+
+/* ===== Responsive ===== */
+@media(max-width:900px){
+  .topbar{height:68px}
+  .brand-divider,.course,.header-right>span,.key-hint{display:none}
+  #stage{height:calc(100dvh - 140px)}
+  .toolbar{height:72px}
+  .progress-track{width:55px}
+  .tools{gap:4px}
+  #slide-index{top:68px;bottom:72px}
+  #index-items{grid-template-columns:repeat(2,1fr)}
+  .parts{grid-template-columns:repeat(3,1fr)}
+  .parts>div:nth-child(3){border-right:0}
+  .parts>div:nth-child(n+4){border-top:1px solid var(--line)}
+  .parts>div:last-child{grid-column:span 2}
+  .two-col{grid-template-columns:1fr}
+  pre{font-size:13.5px;padding:16px 18px}
+}
+@media(max-width:600px){
+  .topbar{margin:0 5%}
+  .brand b{font-size:20px}
+  .slide{padding:22px 0;gap:18px;justify-content:flex-start}
+  .slide h1{font-size:48px}
+  .hero-sub{font-size:22px}
+  .lead{font-size:17px}
+  .slide h2{font-size:26px}
+  .slide h3{font-size:19px}
+  pre{font-size:12.5px;padding:14px 12px}
+  .dir-tree{font-size:12px;padding:14px 12px}
+  .toolbar{margin:0 5%;gap:8px}
+  .tools{gap:1px}
+  .icon-button{width:37px;height:40px}
+  .progress-track{width:38px}
+  .progress-group{gap:9px}
+  .control-divider{margin:0 3px}
+  #counter{font-size:12px;min-width:45px}
+  #index-items{grid-template-columns:1fr}
+  .index-item{padding:16px 0}
+  .parts{grid-template-columns:1fr 1fr}
+  .parts>div:nth-child(odd){border-right:1px solid var(--line)}
+  .parts>div:nth-child(even){border-right:0}
+  .parts>div:nth-child(n+3){border-top:1px solid var(--line)}
+  .parts>div:last-child{grid-column:span 2}
+  .tab-bar{flex-direction:column}
+  .tab-btn{text-align:left;border-bottom:0;border-left:3px solid transparent;margin:0}
+  .tab-btn.active{border-left-color:var(--accent);border-bottom:0}
+  .check-item{font-size:14px;padding:10px 12px}
+  .two-col{grid-template-columns:1fr}
+}
+@media(max-height:650px) and (min-width:901px){
+  .topbar{height:60px}
+  .toolbar{height:64px}
+  #stage{height:calc(100dvh - 124px)}
+  .slide{gap:16px;padding:20px 0}
+  .slide h2{font-size:36px}
+  .slide h1{font-size:70px}
+  .hero-sub{font-size:28px}
+  .lead{font-size:20px}
+  #slide-index{top:60px;bottom:64px}
+  pre{font-size:13px;padding:14px 18px}
+}
+</style>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="#1" aria-label="Taller CrewAI"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 9h20L16 26Z"/><circle cx="6" cy="9" r="3"/><circle cx="26" cy="9" r="3"/><circle cx="16" cy="26" r="3"/></svg><b>CrewAI</b><span class="brand-divider"></span><span class="course">Taller práctico</span></a><div class="header-right"><span id="chapter">Inicio</span><button id="index-toggle" class="quiet" aria-expanded="false" aria-controls="slide-index" title="Índice (I)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg><span>Índice</span></button></div></header>
+  <main id="stage" aria-label="Taller de CrewAI"></main>
+  <nav id="slide-index" hidden aria-label="Índice de diapositivas"><div class="index-heading"><h2>El recorrido</h2><button id="close-index" class="quiet" aria-label="Cerrar índice">Cerrar</button></div><div id="index-items"></div></nav>
+  <footer class="toolbar"><div class="progress-group"><span id="counter" aria-live="polite">01 / --</span><div class="progress-track" aria-hidden="true"><span id="progress"></span></div><span class="key-hint">Flechas ← → para navegar</span></div><div class="tools"><button id="fullscreen" class="icon-button" aria-label="Pantalla completa" title="Pantalla completa (F)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></svg></button><span class="control-divider"></span><button id="prev" class="icon-button" aria-label="Anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></button><button id="next" class="icon-button next" aria-label="Siguiente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg></button></div></footer>
+  <div id="announcement" class="sr-only" role="status"></div><div id="toast" role="status" hidden></div>
+  <noscript>Activa JavaScript para ver esta presentación.</noscript>
+<script>
+/* === Taller CrewAI — Contenido de diapositivas === */
+
+/* Helpers */
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function cmd(text){
+  return '<div class="code-block"><button class="copy-btn" title="Copiar">'+iconCopy+'</button><pre><code>'+esc(text)+'</code></pre></div>';
+}
+
+function codeBlock(text,label){
+  return (label?'<div class="code-label">'+label+'</div>':'')+
+    '<div class="code-block"><button class="copy-btn" title="Copiar">'+iconCopy+'</button><pre><code>'+esc(text)+'</code></pre></div>';
+}
+
+function accordion(items){
+  var h='<div class="accordion">';
+  for(var i=0;i<items.length;i++){
+    h+='<details><summary>'+items[i][0]+'</summary><div class="detail-body">'+items[i][1]+'</div></details>';
+  }
+  return h+'</div>';
+}
+
+function tabGroup(id,tabs){
+  var h='<div class="tab-group"><div class="tab-bar" role="tablist">';
+  for(var i=0;i<tabs.length;i++){
+    h+='<button role="tab" class="tab-btn'+(i===0?' active':'')+'" data-tab="'+id+'-'+i+'">'+tabs[i].label+'</button>';
+  }
+  h+='</div>';
+  for(var j=0;j<tabs.length;j++){
+    h+='<div class="tab-panel'+(j===0?' active':'')+'" id="'+id+'-'+j+'" role="tabpanel">'+tabs[j].content+'</div>';
+  }
+  return h+'</div>';
+}
+
+function note(text){return '<div class="note-box"><span class="n-icon">📝</span><div>'+text+'</div></div>';}
+function tip(text){return '<div class="tip-box"><span class="n-icon">💡</span><div>'+text+'</div></div>';}
+function warn(text){return '<div class="warn-box"><span class="n-icon">⚠️</span><div>'+text+'</div></div>';}
+function extLink(url,text){return '<a class="ext" href="'+url+'" target="_blank" rel="noopener">'+text+'</a>';}
+
+var docs='https://docs.crewai.com/en/';
+
+function makeSlides(){return [
+
+/* ========================================================
+   SECCIÓN 1: ANTES DEL TALLER (Requisitos previos)
+   ======================================================== */
+
+// 1 — Checklist
+{title:'Antes de empezar',chapter:'Antes del taller',render:function(){return ''
+  +'<h2>Lo que necesitas <span class="accent">antes</span> del taller</h2>'
+  +'<p class="lead">Instala todo con anticipación — el internet del salón se puede saturar.</p>'
+  +'<ul class="checklist">'
+    +'<li class="check-item"><span class="check-icon"></span><div><strong>UV</strong> — gestor de paquetes de Python</div></li>'
+    +'<li class="check-item"><span class="check-icon"></span><div><strong>CrewAI CLI</strong> — framework de agentes</div></li>'
+    +'<li class="check-item"><span class="check-icon"></span><div><strong>Proyecto creado</strong> con <code>crewai create crew taller_crewai --classic</code></div></li>'
+    +'<li class="check-item"><span class="check-icon"></span><div><strong>Ollama</strong> + modelos <code>llama3.1</code> y <code>phi4-mini</code></div></li>'
+    +'<li class="check-item"><span class="check-icon"></span><div><strong>Dependencias</strong>: <code>crewai_tools</code> + <code>crewai install</code></div></li>'
+    +'<li class="check-item"><span class="check-icon"></span><div><strong>Cuenta en Serper</strong> + API key para búsqueda web</div></li>'
+    +'<li class="check-item"><span class="check-icon"></span><div><em>(Opcional)</em> SDK de Gemini + API key</div></li>'
+  +'</ul>'
+  +'<div class="slide-end"><p class="takeaway">Las siguientes diapositivas te guían paso a paso.</p></div>';
+}},
+
+// 2 — Instalar UV
+{title:'Instalar UV',chapter:'Antes del taller',render:function(){return ''
+  +'<h2>Paso 1 · Instalar <span class="accent">UV</span></h2>'
+  +'<p class="lead">Gestor ultra-rápido de paquetes y entornos Python. '+extLink('https://docs.astral.sh/uv/getting-started/installation/','Documentación oficial')+'</p>'
+  +accordion([
+    ['🍎 macOS / 🐧 Linux (recomendado)',
+      cmd('curl -LsSf https://astral.sh/uv/install.sh | sh')
+      +'<p>Cierra y vuelve a abrir la terminal después de instalar.</p>'
+    ],
+    ['🐧 Linux — por distribución',
+      '<table>'
+      +'<tr><td style="padding:8px"><strong>Fedora / RHEL</strong></td><td><code>sudo dnf install uv</code></td></tr>'
+      +'<tr><td style="padding:8px"><strong>Arch / Manjaro</strong></td><td><code>sudo pacman -S uv</code></td></tr>'
+      +'<tr><td style="padding:8px"><strong>Ubuntu / Debian</strong></td><td>Usa el <code>curl</code> de arriba o <code>sudo snap install astral-uv --classic</code></td></tr>'
+      +'</table>'
+    ],
+    ['🪟 Windows',
+      '<p><strong>Opción A — Instalador oficial:</strong></p>'
+      +cmd('powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"')
+      +'<p><strong>Opción B — WinGet:</strong></p>'
+      +cmd('winget install --id=astral-sh.uv -e')
+      +'<p><strong>Opción C — Scoop:</strong></p>'
+      +cmd('scoop install main/uv')
+    ]
+  ])
+  +'<h4>✅ Verificar instalación</h4>'
+  +cmd('uv --version');
+}},
+
+// 3 — CrewAI + Proyecto
+{title:'CrewAI + Proyecto',chapter:'Antes del taller',render:function(){return ''
+  +'<h2>Paso 2 · Instalar <span class="accent">CrewAI</span> y crear el proyecto</h2>'
+  +'<p class="lead">Instalamos el CLI globalmente y creamos un proyecto clásico. '+extLink(docs+'concepts/cli','Ver todos los comandos del CLI')+'</p>'
+  +'<h4>Instalar CrewAI</h4>'
+  +cmd('uv tool install crewai')
+  +'<h4>Verificar</h4>'
+  +cmd('crewai version')
+  +'<h4>Crear el proyecto</h4>'
+  +cmd('crewai create crew taller_crewai --classic')
+  +note('Durante la creación te pedirá proveedor de LLM y modelo. Puedes elegir cualquiera — lo configuraremos después manualmente.')
+  +'<h4>Entrar al directorio del proyecto</h4>'
+  +cmd('cd taller_crewai');
+}},
+
+// 4 — Dependencias
+{title:'Dependencias',chapter:'Antes del taller',render:function(){return ''
+  +'<h2>Paso 3 · Instalar <span class="accent">dependencias</span></h2>'
+  +'<p class="lead">Librerías adicionales que necesitan nuestros agentes.</p>'
+  +'<h4>Herramientas de CrewAI (incluye SerperDevTool y 40+ más)</h4>'
+  +cmd('uv add crewai_tools')
+  +'<p style="font-size:14px;color:var(--muted)">'+extLink(docs+'concepts/tools','Ver todas las herramientas disponibles')+' — búsqueda web, lectura de archivos, scraping, bases de datos, etc.</p>'
+  +accordion([
+    ['(Opcional) SDK de Google Gemini',
+      '<p>Solo si quieres usar modelos de Gemini como alternativa a Ollama:</p>'
+      +cmd('uv add "crewai[google-genai]"')
+      +note('Esto instala el SDK nativo de Google para que CrewAI se comunique con Gemini directamente.')
+    ]
+  ])
+  +'<h4>Resolver e instalar todo el proyecto</h4>'
+  +cmd('crewai install');
+}},
+
+// 5 — Ollama + Modelos
+{title:'Ollama + Modelos',chapter:'Antes del taller',render:function(){return ''
+  +'<h2>Paso 4 · <span class="accent">Ollama</span> y modelos locales</h2>'
+  +'<p class="lead">Corre LLMs en tu propia máquina — sin API key, sin costo. '+extLink('https://ollama.com','ollama.com')+'</p>'
+  +'<h4>1. Descargar e instalar Ollama</h4>'
+  +'<p>Descárgalo desde '+extLink('https://ollama.com/download','ollama.com/download')+' según tu sistema operativo.</p>'
+  +'<h4>2. Descargar los modelos</h4>'
+  +cmd('ollama pull llama3.1')
+  +cmd('ollama pull phi4-mini')
+  +tip('<strong>llama3.1</strong> (~4.7 GB) es bueno para investigación. <strong>phi4-mini</strong> (~2.5 GB) es rápido para redacción. Son los modelos más ligeros que usaremos.')
+  +'<h4>3. Verificar que Ollama esté corriendo</h4>'
+  +cmd('ollama serve')
+  +note('Si ya está corriendo como servicio, este comando mostrará un error de puerto — eso está bien. Ollama responde en <code>http://localhost:11434</code>.');
+}},
+
+// 6 — API Keys
+{title:'Cuentas y API keys',chapter:'Antes del taller',render:function(){return ''
+  +'<h2>Paso 5 · <span class="accent">API keys</span></h2>'
+  +'<h3>Serper — búsqueda web para tus agentes</h3>'
+  +'<ol style="font-size:16px;line-height:1.8;padding-left:22px">'
+    +'<li>Crea una cuenta en '+extLink('https://serper.dev/api-keys','serper.dev/api-keys')+'</li>'
+    +'<li>Te dan créditos gratis — no pide tarjeta</li>'
+    +'<li>Copia tu API key</li>'
+  +'</ol>'
+  +accordion([
+    ['(Opcional) Gemini — modelos en la nube',
+      '<ol style="font-size:15px;line-height:1.8;padding-left:22px">'
+        +'<li>Entra a '+extLink('https://aistudio.google.com/apikey','aistudio.google.com/apikey')+'</li>'
+        +'<li>Inicia sesión con tu cuenta de Google</li>'
+        +'<li>Haz clic en <strong>Create API key</strong></li>'
+        +'<li>Copia la clave y guárdala</li>'
+      +'</ol>'
+      +warn('La capa gratuita de Gemini tiene límites por minuto. Si el servicio se satura, las cuentas gratuitas son las primeras en recibir error 429. Úsalo como alternativa — el enfoque principal del taller es Ollama.')
+    ]
+  ]);
+}},
+
+// 7 — .env
+{title:'Configurar .env',chapter:'Antes del taller',render:function(){return ''
+  +'<h2>Paso 6 · Archivo <span class="accent">.env</span></h2>'
+  +'<p class="lead">Aquí van tus claves de API. Nunca subas este archivo a Git.</p>'
+  +'<h4>Abre <code>.env</code> en la raíz del proyecto y agrega:</h4>'
+  +codeBlock('SERPER_API_KEY=tu_clave_de_serper\n\n# (Opcional) Solo si usarás Gemini:\n# GEMINI_API_KEY=tu_clave_de_gemini\n# MODEL=gemini/gemini-3.5-flash-lite','.env')
+  +note('Para Ollama <strong>no necesitas</strong> variables de entorno — la conexión se configura directamente en el código Python con la clase <code>LLM</code>.')
+  +'<div class="slide-end"><p class="takeaway">Con esto tienes todo instalado. ¡Nos vemos en el taller!</p></div>';
+}},
+
+/* ========================================================
+   SECCIÓN 2: EL TALLER (durante la sesión)
+   ======================================================== */
+
+// 8 — Resumen
+{title:'¡Empezamos!',chapter:'El taller',render:function(){return ''
+  +'<h2>¿Qué ya tienes <span class="accent">instalado</span>?</h2>'
+  +'<p class="lead">Repaso rápido antes de comenzar a escribir código.</p>'
+  +'<div class="two-col">'
+    +'<div>'
+      +'<h4>🛠️ Herramientas</h4>'
+      +'<ul style="font-size:16px;line-height:2;padding-left:20px">'
+        +'<li><strong>UV</strong> — gestor de paquetes ✓</li>'
+        +'<li><strong>CrewAI CLI</strong> — framework ✓</li>'
+        +'<li><strong>Ollama</strong> + modelos locales ✓</li>'
+        +'<li><strong>crewai_tools</strong> — herramientas ✓</li>'
+      +'</ul>'
+    +'</div>'
+    +'<div>'
+      +'<h4>🔑 Cuentas</h4>'
+      +'<ul style="font-size:16px;line-height:2;padding-left:20px">'
+        +'<li><strong>Serper</strong> — API key lista ✓</li>'
+        +'<li><strong>.env</strong> configurado ✓</li>'
+        +'<li><em>(Opcional)</em> Gemini SDK + key ✓</li>'
+      +'</ul>'
+    +'</div>'
+  +'</div>'
+  +'<div class="slide-end"><p class="takeaway">Ahora vamos a entender y personalizar el proyecto.</p></div>';
+}},
+
+// 9 — ¿Por qué --classic?
+{title:'¿Por qué --classic?',chapter:'El taller',render:function(){return ''
+  +'<h2>El formato <span class="accent">--classic</span></h2>'
+  +'<p class="lead">CrewAI tiene dos formatos de proyecto. Nosotros usamos el clásico.</p>'
+  +'<div class="two-col">'
+    +'<div style="border-top:1px solid var(--line);padding-top:18px">'
+      +'<h3>Formato por defecto</h3>'
+      +'<p style="font-size:15px;color:var(--muted);line-height:1.5;margin-top:10px">Genera <code>crew.jsonc</code> + archivos JSON. Pensado para proyectos simples donde no necesitas ver el código Python.</p>'
+    +'</div>'
+    +'<div style="background:var(--ink);color:white;padding:20px;border-radius:5px">'
+      +'<h3 style="color:var(--peach)">Formato --classic ✓</h3>'
+      +'<p style="font-size:15px;color:#c5cfda;line-height:1.5;margin-top:10px">Genera <code>crew.py</code> + YAML. Deja visible cómo se conectan agentes, tareas y el crew — <strong>ideal para aprender</strong>.</p>'
+    +'</div>'
+  +'</div>'
+  +'<div class="slide-end"><p class="takeaway">El formato clásico te da control total sobre el código Python y los YAML.</p></div>';
+}},
+
+// 10 — Estructura del proyecto
+{title:'Estructura del proyecto',chapter:'El taller',render:function(){return ''
+  +'<h2>Los archivos del <span class="accent">proyecto</span></h2>'
+  +'<div class="dir-tree">'
+    +'taller_crewai/\n'
+    +'├── .env                    <span class="hl">← API keys (no subir a Git)</span>\n'
+    +'├── pyproject.toml          <span class="hl">← dependencias del proyecto</span>\n'
+    +'└── src/\n'
+    +'    └── taller_crewai/\n'
+    +'        ├── main.py         <span class="hl">← punto de entrada</span>\n'
+    +'        ├── crew.py         <span class="hl">← agentes, tareas y crew</span>\n'
+    +'        ├── config/\n'
+    +'        │   ├── agents.yaml <span class="hl">← definición de agentes</span>\n'
+    +'        │   └── tasks.yaml  <span class="hl">← definición de tareas</span>\n'
+    +'        └── tools/\n'
+    +'            └── custom_tool.py'
+  +'</div>'
+  +'<h3 style="margin-top:8px">Los 5 pilares de CrewAI</h3>'
+  +'<div class="parts">'
+    +'<div><h4>¿Quién?</h4><span class="part-label">Agent</span><p>El responsable.</p></div>'
+    +'<div><h4>¿Qué?</h4><span class="part-label">Task</span><p>El encargo.</p></div>'
+    +'<div><h4>¿Con qué?</h4><span class="part-label">Tool</span><p>Las herramientas.</p></div>'
+    +'<div><h4>¿En qué orden?</h4><span class="part-label">Process</span><p>La coordinación.</p></div>'
+    +'<div class="crew-part"><h4>¿Qué equipo?</h4><span class="part-label">Crew</span><p>Todo junto.</p></div>'
+  +'</div>';
+}},
+
+// 11 — agents.yaml
+{title:'Agentes personalizados',chapter:'Configuración',render:function(){return ''
+  +'<h2>Definir nuestros <span class="accent">agentes</span></h2>'
+  +'<p class="lead">Reemplaza el contenido de <code>config/agents.yaml</code> con estos dos agentes:</p>'
+  +codeBlock(
+    'investigador_tecnologias:\n'
+   +'  role: >\n'
+   +'    Investigador Senior de {topic}\n'
+   +'  goal: >\n'
+   +'    Investigar y recopilar información actualizada sobre {topic}\n'
+   +'  backstory: >\n'
+   +'    Eres un investigador especializado en tecnología con años de experiencia\n'
+   +'    analizando tendencias. Priorizas fuentes confiables y separas hechos\n'
+   +'    de opiniones. Tu trabajo es encontrar la información más relevante\n'
+   +'    y presentarla de forma clara y concisa.\n'
+   +'\n'
+   +'redactor_informe:\n'
+   +'  role: >\n'
+   +'    Redactor de Informes sobre {topic}\n'
+   +'  goal: >\n'
+   +'    Convertir hallazgos de investigación en un informe claro y estructurado\n'
+   +'  backstory: >\n'
+   +'    Eres un redactor técnico experto en transformar datos complejos en\n'
+   +'    documentos comprensibles. Te especializas en informes ejecutivos\n'
+   +'    que cualquier persona pueda entender sin perder precisión técnica.'
+  ,'config/agents.yaml')
+  +note('<code>{topic}</code> es un placeholder — se reemplaza automáticamente con el valor que pases desde <code>main.py</code> al ejecutar.');
+}},
+
+// 12 — tasks.yaml
+{title:'Tareas personalizadas',chapter:'Configuración',render:function(){return ''
+  +'<h2>Definir las <span class="accent">tareas</span></h2>'
+  +'<p class="lead">Reemplaza el contenido de <code>config/tasks.yaml</code>:</p>'
+  +codeBlock(
+    'tarea_investigacion:\n'
+   +'  description: >\n'
+   +'    Investiga las tendencias actuales y casos de uso de {topic}.\n'
+   +'    Encuentra información relevante considerando que estamos en {current_year}.\n'
+   +'    Incluye ventajas, desventajas y menciona tus fuentes.\n'
+   +'  expected_output: >\n'
+   +'    Una lista con 5 puntos clave sobre {topic}, cada uno con una breve\n'
+   +'    explicación y su fuente de información.\n'
+   +'  agent: investigador_tecnologias\n'
+   +'\n'
+   +'tarea_redaccion:\n'
+   +'  description: >\n'
+   +'    Usando los hallazgos de la investigación, redacta un informe ejecutivo\n'
+   +'    sobre {topic}. Incluye introducción, puntos clave desarrollados\n'
+   +'    y una conclusión con recomendaciones.\n'
+   +'  expected_output: >\n'
+   +'    Un informe completo en markdown con secciones: Introducción,\n'
+   +'    Hallazgos Principales y Conclusión.\n'
+   +'    Formateado como markdown sin bloques de código\n'
+   +'  agent: redactor_informe'
+  ,'config/tasks.yaml')
+  +tip('Cada tarea tiene un <code>agent</code> asignado y un <code>expected_output</code> — esto le dice al agente exactamente qué formato debe entregar.');
+}},
+
+// 13 — La clase LLM (bifurcación Ollama / Gemini)
+{title:'Integrar el LLM',chapter:'Código',render:function(){return ''
+  +'<h2>La clase <span class="accent">LLM</span></h2>'
+  +'<p class="lead">Conectamos nuestros agentes con un modelo de lenguaje.</p>'
+  +tabGroup('llm',[
+    {label:'🦙 Ollama (local)',content:''
+      +'<p>Agrega esto al inicio de <code>crew.py</code> (después de los imports):</p>'
+      +codeBlock(
+        'from crewai.llm import LLM\n'
+       +'\n'
+       +'llm_llama3 = LLM(\n'
+       +'    model="ollama/llama3.1",\n'
+       +'    base_url="http://localhost:11434"\n'
+       +')\n'
+       +'llm_phi4 = LLM(\n'
+       +'    model="ollama/phi4-mini",\n'
+       +'    base_url="http://localhost:11434"\n'
+       +')'
+      ,'crew.py — definir modelos')
+      +note('El prefijo <code>ollama/</code> le indica a CrewAI que use LiteLLM para conectarse a tu servidor local. Asegúrate de que <code>ollama serve</code> esté corriendo.')
+    },
+    {label:'✨ Gemini (API)',content:''
+      +'<p><strong>Opción A</strong> — Vía <code>.env</code> (sin código adicional):</p>'
+      +codeBlock('# En tu archivo .env:\nMODEL=gemini/gemini-3.5-flash-lite\nGEMINI_API_KEY=tu_clave','.env')
+      +'<p>CrewAI lee estas variables automáticamente. No necesitas definir la clase <code>LLM</code>.</p>'
+      +'<p style="margin-top:14px"><strong>Opción B</strong> — Explícita en código:</p>'
+      +codeBlock(
+        'from crewai.llm import LLM\n'
+       +'\n'
+       +'llm_gemini = LLM(\n'
+       +'    model="gemini/gemini-3.5-flash-lite",\n'
+       +')'
+      ,'crew.py — Gemini')
+      +warn('Si recibes error 429, espera un minuto o cambia a un modelo <code>-lite</code>. '+extLink('https://ai.google.dev/gemini-api/docs/models','Ver catálogo de modelos'))
+    }
+  ]);
+}},
+
+// 14 — crew.py completo
+{title:'crew.py completo',chapter:'Código',render:function(){return ''
+  +'<h2>Código completo de <span class="accent">crew.py</span></h2>'
+  +'<p class="lead">Reemplaza todo el contenido de <code>src/taller_crewai/crew.py</code>:</p>'
+  +codeBlock(
+    'from crewai import Agent, Crew, Process, Task\n'
+   +'from crewai.project import CrewBase, agent, crew, task\n'
+   +'from crewai.agents.agent_builder.base_agent import BaseAgent\n'
+   +'from crewai.llm import LLM\n'
+   +'\n'
+   +'llm_llama3 = LLM(\n'
+   +'    model="ollama/llama3.1",\n'
+   +'    base_url="http://localhost:11434"\n'
+   +')\n'
+   +'llm_phi4 = LLM(\n'
+   +'    model="ollama/phi4-mini",\n'
+   +'    base_url="http://localhost:11434"\n'
+   +')\n'
+   +'\n'
+   +'@CrewBase\n'
+   +'class TallerCrewai():\n'
+   +'    """TallerCrewai crew"""\n'
+   +'\n'
+   +'    agents: list[BaseAgent]\n'
+   +'    tasks: list[Task]\n'
+   +'\n'
+   +'    @agent\n'
+   +'    def investigador_tecnologias(self) -> Agent:\n'
+   +'        return Agent(\n'
+   +'            config=self.agents_config[\'investigador_tecnologias\'],\n'
+   +'            verbose=True,\n'
+   +'            llm=llm_llama3\n'
+   +'        )\n'
+   +'\n'
+   +'    @agent\n'
+   +'    def redactor_informe(self) -> Agent:\n'
+   +'        return Agent(\n'
+   +'            config=self.agents_config[\'redactor_informe\'],\n'
+   +'            verbose=True,\n'
+   +'            llm=llm_phi4\n'
+   +'        )\n'
+   +'\n'
+   +'    @task\n'
+   +'    def tarea_investigacion(self) -> Task:\n'
+   +'        return Task(\n'
+   +'            config=self.tasks_config[\'tarea_investigacion\'],\n'
+   +'        )\n'
+   +'\n'
+   +'    @task\n'
+   +'    def tarea_redaccion(self) -> Task:\n'
+   +'        return Task(\n'
+   +'            config=self.tasks_config[\'tarea_redaccion\'],\n'
+   +'            output_file=\'informe.md\'\n'
+   +'        )\n'
+   +'\n'
+   +'    @crew\n'
+   +'    def crew(self) -> Crew:\n'
+   +'        return Crew(\n'
+   +'            agents=self.agents,\n'
+   +'            tasks=self.tasks,\n'
+   +'            process=Process.sequential,\n'
+   +'            verbose=True,\n'
+   +'        )'
+  ,'src/taller_crewai/crew.py')
+  +tip('<code>tools=[search_tool]</code> le da al investigador acceso a búsqueda web con Serper. El redactor no la necesita — recibe los hallazgos como contexto automáticamente por el <code>Process.sequential</code>.');
+}},
+
+// 15 — main.py
+{title:'Punto de entrada: main.py',chapter:'Código',render:function(){return ''
+  +'<h2>El archivo <span class="accent">main.py</span></h2>'
+  +'<p class="lead">Aquí defines los <code>inputs</code> iniciales y disparas la ejecución.</p>'
+  +codeBlock(
+    'def run():\n'
+   +'    inputs = {\n'
+   +'        \'topic\': \'Inteligencia Artificial en la educación\',\n'
+   +'        \'current_year\': str(datetime.now().year),\n'
+   +'    }\n'
+   +'    try:\n'
+   +'        TallerCrewai().crew().kickoff(inputs=inputs)\n'
+   +'    except Exception as e:\n'
+   +'        raise Exception(f"Error al ejecutar: {e}")'
+  ,'main.py — función run()')
+  +tip('¡Cambia el <code>topic</code> a lo que quieras! Prueba con "Ciberseguridad", "Blockchain", "Computación cuántica"… el agente investigará sobre lo que le pidas.')
+  +'<h4>Otros métodos disponibles en main.py</h4>'
+  +'<table>'
+    +'<tr><td><code>run()</code></td><td>Ejecuta el crew con los inputs definidos</td></tr>'
+    +'<tr><td><code>train()</code></td><td>Entrena el crew por N iteraciones</td></tr>'
+    +'<tr><td><code>test()</code></td><td>Prueba y evalúa resultados con un LLM evaluador</td></tr>'
+    +'<tr><td><code>replay()</code></td><td>Reproduce la ejecución desde una tarea específica</td></tr>'
+  +'</table>'
+  +note('Los <code>inputs</code> del diccionario se usan como placeholders <code>{topic}</code> y <code>{current_year}</code> en los YAML de agentes y tareas.');
+}},
+
+// 16 — Integrar SerperDevTool
+{title:'El tool de búsqueda',chapter:'Código',render:function(){return ''
+  +'<h2>Integrar <span class="accent">SerperDevTool</span></h2>'
+  +'<p class="lead">Le da a tu agente la capacidad de buscar en Google en tiempo real.</p>'
+  +'<h4>1. Import + instanciar (en crew.py)</h4>'
+  +codeBlock(
+    'from crewai_tools import SerperDevTool\n'
+   +'\n'
+   +'search_tool = SerperDevTool()'
+  ,'crew.py')
+  +'<h4>2. Asignar al agente</h4>'
+  +codeBlock(
+    '@agent\n'
+   +'def investigador_tecnologias(self) -> Agent:\n'
+   +'    return Agent(\n'
+   +'        config=self.agents_config[\'investigador_tecnologias\'],\n'
+   +'        verbose=True,\n'
+   +'        llm=llm_llama3,\n'
+   +'        tools=[search_tool]  # ← aquí\n'
+   +'    )'
+  ,'crew.py')
+  +'<h4>3. Asegurar la API key en .env</h4>'
+  +codeBlock('SERPER_API_KEY=tu_clave_de_serper','.env')
+  +note('Solo el agente que tiene <code>tools=[search_tool]</code> puede buscar en la web. El redactor no tiene tools — trabaja con lo que le pasa el investigador.')
+  +'<p style="font-size:14px;color:var(--muted);margin-top:6px">'+extLink(docs+'concepts/tools','Explorar las 40+ herramientas disponibles en crewai_tools')+'</p>';
+}},
+
+// 17 — Trazas
+{title:'Activar trazas',chapter:'Ejecución',render:function(){return ''
+  +'<h2>Ver el <span class="accent">razonamiento</span> paso a paso</h2>'
+  +'<p class="lead">Las trazas te permiten ver qué decidió cada agente, qué herramientas usó y qué respondió el modelo.</p>'
+  +'<h4>1. Crear cuenta (gratis, solo la primera vez)</h4>'
+  +cmd('crewai login')
+  +'<h4>2. Activar trazas</h4>'
+  +cmd('crewai traces enable')
+  +tip('No necesitas cuenta de pago. Las trazas se ven en el dashboard de CrewAI AMP — muy útil para depurar cuando un agente se comporta de forma inesperada.')
+  +note('Esto es opcional pero muy recomendado para entender cómo trabajan los agentes internamente.');
+}},
+
+// 18 — ¡Ejecutar!
+{title:'¡A ejecutar!',chapter:'Ejecución',render:function(){return ''
+  +'<h2>Momento de la <span class="accent">verdad</span> 🚀</h2>'
+  +'<p class="lead">Un solo comando para poner a trabajar a tu equipo de agentes.</p>'
+  +cmd('crewai run')
+  +'<h4>¿Qué va a pasar?</h4>'
+  +'<ol style="font-size:16px;line-height:2;padding-left:22px">'
+    +'<li>CrewAI activa el entorno virtual del proyecto</li>'
+    +'<li>Ejecuta <code>main.py</code> → <code>crew().kickoff(inputs=...)</code></li>'
+    +'<li>El <strong>investigador</strong> busca información sobre el topic con Serper</li>'
+    +'<li>El <strong>redactor</strong> recibe los hallazgos y escribe el informe</li>'
+    +'<li>El resultado se guarda en <code>informe.md</code></li>'
+  +'</ol>'
+  +note('Con <code>verbose=True</code>, verás en la terminal el razonamiento de cada agente en tiempo real.')
+  +warn('La primera ejecución puede tardar varios minutos dependiendo de los modelos y tu máquina. ¡Paciencia!')
+  +'<div class="slide-end"><p class="takeaway">¡Felicidades! Acabas de construir tu primer equipo de agentes de IA. 🎉</p></div>';
+}},
+
+// 19 — Recursos y cierre
+{title:'Recursos y enlaces',chapter:'Ejecución',render:function(){return ''
+  +'<h2>Para seguir <span class="accent">aprendiendo</span></h2>'
+  +'<p class="lead">Documentación, herramientas y referencias útiles.</p>'
+  +'<table>'
+    +'<tr><td>🔧 UV</td><td>'+extLink('https://docs.astral.sh/uv/','docs.astral.sh/uv')+'</td></tr>'
+    +'<tr><td>📚 CrewAI</td><td>'+extLink('https://docs.crewai.com','docs.crewai.com')+'</td></tr>'
+    +'<tr><td>🖥️ CLI de CrewAI</td><td>'+extLink(docs+'concepts/cli','Todos los comandos')+'</td></tr>'
+    +'<tr><td>🔨 Tools de CrewAI</td><td>'+extLink(docs+'concepts/tools','40+ herramientas')+'</td></tr>'
+    +'<tr><td>🦙 Ollama</td><td>'+extLink('https://ollama.com','ollama.com')+'</td></tr>'
+    +'<tr><td>🔍 Serper</td><td>'+extLink('https://serper.dev','serper.dev')+'</td></tr>'
+    +'<tr><td>🤖 Modelos Gemini</td><td>'+extLink('https://ai.google.dev/gemini-api/docs/models','Catálogo de modelos')+'</td></tr>'
+    +'<tr><td>🔑 API key Gemini</td><td>'+extLink('https://aistudio.google.com/apikey','AI Studio')+'</td></tr>'
+  +'</table>'
+  +'<div class="slide-end"><p class="takeaway">Experimenta con diferentes topics, modelos y herramientas. El mejor aprendizaje es probando.</p></div>';
+}}
+
+];} /* end makeSlides */
+/* === Taller CrewAI — Navegación y lógica === */
+const iconArrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-5-5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+const iconCopy='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+
+/* Portada (slide 0) */
+const slides=[{
+  title:'Tu primer equipo de agentes de IA',
+  chapter:'Inicio',
+  render:()=>'<div class="hero">'
+    +'<h1>Taller CrewAI<span class="accent">.</span></h1>'
+    +'<p class="hero-sub">Construye tu primer <span class="accent">equipo de agentes</span> de IA con modelos locales.</p>'
+    +'<p class="lead">Guía paso a paso con CrewAI, Ollama y Serper.</p>'
+    +'<button class="start-btn" data-next>Comenzar '+iconArrow+'</button>'
+    +'<p class="hero-meta">Taller práctico · ~1 hora · Septiembre 2026</p>'
+    +'</div>'
+}];
+
+slides.push(...makeSlides());
+
+let current=0;let indexOpen=false;
+const stage=document.getElementById('stage');
+const prevBtn=document.getElementById('prev');
+const nextBtn=document.getElementById('next');
+
+function navigate(n,updateHash){
+  if(updateHash===undefined)updateHash=true;
+  current=Math.min(Math.max(Number.isFinite(n)?Math.trunc(n):0,0),slides.length-1);
+  var s=slides[current];
+  stage.innerHTML='<section class="slide" aria-label="'+(current+1)+'. '+s.title+'">'+s.render()+'</section>';
+  stage.scrollTop=0;
+  document.getElementById('counter').textContent=String(current+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+  document.getElementById('progress').style.width=((current+1)/slides.length*100)+'%';
+  document.getElementById('chapter').textContent=s.chapter;
+  prevBtn.disabled=current===0;
+  nextBtn.disabled=current===slides.length-1;
+  document.title=(current+1)+'. '+s.title+' — Taller CrewAI';
+  document.getElementById('announcement').textContent='Diapositiva '+(current+1)+' de '+slides.length+': '+s.title;
+  if(updateHash)history.replaceState(null,'','#'+(current+1));
+  renderIndex();
+}
+
+function renderIndex(){
+  var html='';
+  for(var i=0;i<slides.length;i++){
+    html+='<button class="index-item" data-slide="'+i+'"'+(i===current?' aria-current="page"':'')+'><span>'+String(i+1).padStart(2,'0')+'</span>'+slides[i].title+'</button>';
+  }
+  document.getElementById('index-items').innerHTML=html;
+}
+
+function toggleIndex(force){
+  indexOpen=force!==undefined?force:!indexOpen;
+  document.getElementById('slide-index').hidden=!indexOpen;
+  document.getElementById('index-toggle').setAttribute('aria-expanded',String(indexOpen));
+  stage.inert=indexOpen;
+  if(indexOpen)document.getElementById('close-index').focus();
+  else document.getElementById('index-toggle').focus();
+}
+
+function toast(msg){
+  var el=document.getElementById('toast');
+  el.textContent=msg;el.hidden=false;
+  clearTimeout(toast.t);toast.t=setTimeout(function(){el.hidden=true},4000);
+}
+
+function toggleFullscreen(){
+  try{
+    if(document.fullscreenElement)document.exitFullscreen();
+    else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen();
+    else toast('Usa F11 para pantalla completa.');
+  }catch(e){toast('No se pudo activar pantalla completa.');}
+}
+
+/* Copy code to clipboard */
+function copyCode(btn){
+  var code=btn.closest('.code-block').querySelector('code').textContent;
+  navigator.clipboard.writeText(code).then(function(){
+    btn.classList.add('copied');
+    btn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7" stroke-width="2"/></svg>';
+    setTimeout(function(){
+      btn.classList.remove('copied');
+      btn.innerHTML=iconCopy;
+    },2000);
+  }).catch(function(){toast('No se pudo copiar. Selecciona el texto manualmente.');});
+}
+
+/* Event listeners */
+prevBtn.addEventListener('click',function(){navigate(current-1)});
+nextBtn.addEventListener('click',function(){navigate(current+1)});
+document.getElementById('index-toggle').addEventListener('click',function(){toggleIndex()});
+document.getElementById('close-index').addEventListener('click',function(){toggleIndex(false)});
+document.getElementById('fullscreen').addEventListener('click',toggleFullscreen);
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-next],[data-slide]');
+  if(b){
+    if(b.hasAttribute('data-next'))navigate(current+1);
+    else{navigate(Number(b.dataset.slide));toggleIndex(false);}
+    return;
+  }
+  var copyBtn=e.target.closest('.copy-btn');
+  if(copyBtn){copyCode(copyBtn);return;}
+  /* Tabs */
+  var tabBtn=e.target.closest('.tab-btn');
+  if(tabBtn){
+    var group=tabBtn.closest('.tab-group');
+    var btns=group.querySelectorAll('.tab-btn');
+    var panels=group.querySelectorAll('.tab-panel');
+    for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
+    for(var j=0;j<panels.length;j++)panels[j].classList.remove('active');
+    tabBtn.classList.add('active');
+    document.getElementById(tabBtn.dataset.tab).classList.add('active');
+  }
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.altKey||e.ctrlKey||e.metaKey||e.target.matches('input,textarea,select'))return;
+  if(e.key==='Escape'&&indexOpen){toggleIndex(false);return}
+  if(e.key.toLowerCase()==='i'){e.preventDefault();toggleIndex();return}
+  if(e.key.toLowerCase()==='f'){e.preventDefault();toggleFullscreen();return}
+  if(indexOpen)return;
+  if(e.target.closest('button,a')&&[' ','Enter'].indexOf(e.key)!==-1)return;
+  if(['ArrowRight','ArrowDown','PageDown',' '].indexOf(e.key)!==-1){e.preventDefault();navigate(current+1)}
+  if(['ArrowLeft','ArrowUp','PageUp'].indexOf(e.key)!==-1){e.preventDefault();navigate(current-1)}
+  if(e.key==='Home'){e.preventDefault();navigate(0)}
+  if(e.key==='End'){e.preventDefault();navigate(slides.length-1)}
+});
+
+window.addEventListener('hashchange',function(){navigate((Number(location.hash.slice(1))||1)-1,false)});
+document.addEventListener('fullscreenchange',function(){
+  document.getElementById('fullscreen').setAttribute('aria-label',document.fullscreenElement?'Salir de pantalla completa':'Pantalla completa');
+});
+
+var touchStart=null;
+stage.addEventListener('touchstart',function(e){touchStart=e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null},{passive:true});
+stage.addEventListener('touchend',function(e){
+  if(!touchStart||e.target.closest('button,a,pre,details'))return;
+  var dx=e.changedTouches[0].clientX-touchStart.x,dy=e.changedTouches[0].clientY-touchStart.y;
+  if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.6)navigate(current+(dx<0?1:-1));
+  touchStart=null;
+},{passive:true});
+
+navigate((Number(location.hash.slice(1))||1)-1);
+</script>
+</body></html>

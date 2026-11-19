@@ -1,0 +1,27 @@
+tarea_investigacion:
+  description: >
+    Investiga las noticias y novedades más recientes sobre {topic},
+    considerando que estamos en {current_year}. Busca específicamente:
+    si ha habido un lanzamiento reciente, cuál fue el último capítulo
+    o entrega publicada, de qué trata, y cualquier anuncio o novedad
+    relevante (fechas de estreno, cambios, colaboraciones, tendencias
+    en redes sociales, etc.). Prioriza fuentes recientes y verificables.
+  expected_output: >
+    Una lista con 5 puntos clave sobre las novedades de {topic}, cada uno
+    con una breve explicación (qué pasó, cuándo, de qué trata si aplica)
+    y su fuente de información.
+  agent: investigador_tendencias
+
+tarea_redaccion:
+  description: >
+    Usando los hallazgos de la investigación, redacta una noticia o nota
+    informativa sobre las novedades de {topic}. Incluye un titular llamativo,
+    una introducción que resuma lo más importante, el desarrollo de los
+    hallazgos (qué se lanzó, de qué trata, contexto relevante) y un cierre
+    con lo que se puede esperar a futuro.
+  expected_output: >
+    Una noticia completa en markdown con secciones: Titular, Resumen,
+    Desarrollo y Qué Esperar.
+    Formateado como markdown sin bloques de código.
+  output_file: "{dir}/{file_name}"
+  agent: redactor_noticias

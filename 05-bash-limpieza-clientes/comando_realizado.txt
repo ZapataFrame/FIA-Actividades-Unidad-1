@@ -1,0 +1,6 @@
+(head -n 1 clientes_sucio.csv && \
+> tail -n +2 clientes_sucio.csv | \
+> sort | uniq | \
+> grep -v -E '(,,|NA)' | \
+> sed -E 's/ *, */,/g' | \
+> tr '[:upper:]' '[:lower:]') > dataset_limpio_final.csv
